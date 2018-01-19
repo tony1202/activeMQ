@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:amq="http://activemq.apache.org/schema/core"
+       xmlns:jms="http://www.springframework.org/schema/jms"
+       xmlns:contxt="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://activemq.apache.org/schema/core http://activemq.apache.org/schema/core/activemq-core.xsd http://www.springframework.org/schema/jms http://www.springframework.org/schema/jms/spring-jms.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <contxt:component-scan base-package="com.mq"/>
+
+
+    <!-- Spring用于管理真正的ConnectionFactory的CachingConnectionFactory -->
+    <bean id="connectionFactory" class="org.apache.activemq.spring.ActiveMQConnectionFactory">
+        <property name="brokerURL" value="tcp://localhost:61616"/>
+        <property name="userName" value="admin"/>
+        <property name="password" value="admin"/>
+    </bean>
+
+
+    <!-- 定义JmsTemplate的Queue类型 -->
+    <bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+        <!--给模板注入connectFactory-->
+        <property name="connectionFactory" ref="connectionFactory"/>
+        <!-- 非pub/sub模型（发布/订阅），即队列模式 -->
+        <property name="pubSubDomain" value="false"/>
+    </bean>
+
+
+    <!--配置消费者-->
+    <!--配置监听器..队列-->
+    <jms:listener-container destination-type="queue" container-type="default" acknowledge="auto"
+                            connection-factory="connectionFactory">
+        <!--监听的队列名,接收消息的接口-->
+        <jms:listener destination="queue2" ref="pconsumer"/>
+    </jms:listener-container>
+
+</beans>
